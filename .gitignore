@@ -12,6 +12,7 @@ venv/
 
 # Large data files
 *.parquet
+!model/reference_data.parquet
 *.csv
 
 # OS
