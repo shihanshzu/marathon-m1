@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Training Scheduler{% endblock %}
+
+{% block content %}
+<h1>Marathon Training Schedule Generator</h1>
+<p>Enter your goal finish time and personal details. The schedule is derived from the
+   <strong>median training patterns</strong> of real runners who finished near your target —
+   not from hardcoded rules. Demographics are used to narrow the reference group when
+   enough data is available.</p>
+
+<form method="POST" class="schedule-form">
+  <div class="form-row">
+    <div class="form-group">
+      <label for="target_time">Target Finish Time <span class="hint">(H:MM or HH:MM:SS)</span></label>
+      <input type="text" id="target_time" name="target_time" placeholder="e.g. 3:45 or 4:00:00"
+             value="{{ form_values.get('target_time', '') }}" required>
+    </div>
+    <div class="form-group">
+      <label for="gender">Gender</label>
+      <select id="gender" name="gender">
+        <option value="M" {% if form_values.get('gender','M')=='M' %}selected{% endif %}>Male</option>
+        <option value="F" {% if form_values.get('gender')=='F' %}selected{% endif %}>Female</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label for="age_group">Age Group</label>
+      <select id="age_group" name="age_group">
+        {% for ag in ['18 - 34','35 - 54','55 +'] %}
+          <option value="{{ ag }}"
+            {% if form_values.get('age_group', '18 - 34') == ag %}selected{% endif %}>{{ ag }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="marathon_num">Marathon Number <span class="hint">(which attempt is this?)</span></label>
+      <select id="marathon_num" name="marathon_num">
+        {% for n in [1,2,3,4,5] %}
+          <option value="{{ n }}"
+            {% if form_values.get('marathon_num','1')|int == n %}selected{% endif %}>{{ n }}{% if n==5 %}+{% endif %}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label for="prev_marathon_time">Previous Marathon Time <span class="hint">(optional, H:MM)</span></label>
+      <input type="text" id="prev_marathon_time" name="prev_marathon_time"
+             placeholder="e.g. 4:15 (leave blank if first)"
+             value="{{ form_values.get('prev_marathon_time', '') }}">
+    </div>
+    <div class="form-group"></div>
+  </div>
+
+  <button type="submit" class="submit-btn">Generate My Training Plan</button>
+</form>
+
+{% if error %}
+  <div class="error"><p>{{ error }}</p></div>
+{% endif %}
+
+{% if schedule %}
+  <div class="result" style="margin-top:2rem;">
+    <h2>Your 16-Week Training Plan</h2>
+
+    <div class="cohort-info" style="margin-bottom:1rem; padding:0.75rem 1rem;
+         background:#f0f4ff; border-left:4px solid #3355cc; border-radius:4px; font-size:0.92rem;">
+      Based on <strong>{{ cohort_info.count }}</strong> runners
+      ({{ cohort_info.desc }}, finish time {{ cohort_info.window }}).
+      The model projects <strong>{{ modeled_time }}</strong> for this training profile
+      <span style="color:#666;">(±~30 min model uncertainty)</span>.
+    </div>
+
+    <div style="overflow-x:auto;">
+      <table class="schedule-table">
+        <thead>
+          <tr>
+            <th>Week</th>
+            <th>Phase</th>
+            <th>Total Miles</th>
+            <th>Runs/Wk</th>
+            <th>Long Run</th>
+            <th>Long Run Pace</th>
+            <th>Easy Run</th>
+            <th>Easy Pace</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for w in schedule %}
+          <tr class="phase-{{ w.Phase | lower }}">
+            <td>{{ w.Week }}</td>
+            <td><span class="phase-badge phase-{{ w.Phase | lower }}">{{ w.Phase }}</span></td>
+            <td>{{ w['Total Miles'] }}</td>
+            <td>{{ w['Runs/Week'] }}</td>
+            <td>{{ w['Long Run (mi)'] }} mi</td>
+            <td>{{ w['Long Pace'] }}</td>
+            <td>{{ w['Easy Run (mi)'] }} mi</td>
+            <td>{{ w['Easy Pace'] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="legend">
+      <span class="phase-badge phase-base">Base</span> Build aerobic base &nbsp;|&nbsp;
+      <span class="phase-badge phase-build">Build</span> Increase mileage &nbsp;|&nbsp;
+      <span class="phase-badge phase-peak">Peak</span> Highest volume &nbsp;|&nbsp;
+      <span class="phase-badge phase-taper">Taper</span> Rest & race-ready
+    </div>
+  </div>
+{% endif %}
+
+{% endblock %}

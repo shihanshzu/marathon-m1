@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Marathon ML — Shih-An Shzu{% endblock %}
+
+{% block content %}
+<h1>What Actually Predicts Your Marathon Time?</h1>
+
+<p class="subtitle">
+  A machine learning analysis of 22,000+ marathon training cycles, built by
+  <strong>Shih-An Shzu</strong> — runner and data scientist.
+</p>
+
+<div class="insight-grid">
+  <div class="insight-card">
+    <h3>Run slow runs slow. Run fast runs fast.</h3>
+    <p>Every runner hears this — and the model confirms it matters.
+       <strong>Pace differentiation</strong> — the gap between your easy-run pace
+       and your fast-run pace — is one of the strongest independent predictors
+       of finish time. Runners who keep their easy runs easy and their hard runs
+       hard finish faster than runners who train at the same pace every day,
+       even at the same weekly mileage.</p>
+    <p>The model captures this through <span class="stat-num">pace_diff</span>
+       and <span class="stat-num">pace_ratio</span> — both peak in importance
+       around weeks 10–11 of training (peak fitness, 5–6 weeks before race day).</p>
+  </div>
+
+  <div class="insight-card">
+    <h3>Your baseline fitness going in matters more than your peak week.</h3>
+    <p>The model weights your <strong>early-training paces</strong> (weeks 1–4)
+       heavier than your peak-week mileage. This isn't training advice — it's
+       a reality check: the fitness you bring <em>into</em> the 16-week block
+       is a stronger predictor than how hard you push during it.</p>
+    <p>Your long run and easy run paces reflect your aerobic base — they're
+       your slowest runs of the week, and they should be. A runner whose
+       easy pace is 8:00/mi is simply fitter than one at 10:30/mi.
+       The training plan can refine that base, but it can't replace it.</p>
+  </div>
+</div>
+
+<h2>What the Model Weighs Most</h2>
+<p>The Ridge Regression model (α = 51.79) uses 157 features. Rather than
+   showing raw coefficients — which are misleading when correlated features
+   like mileage and duration split their signal — here's what matters
+   by category:</p>
+
+<div class="chart-container">
+  <div class="category-chart">
+    <div class="cat-row">
+      <span class="cat-label">Pace metrics<br><span class="cat-sub">long run pace, fast run pace, pace diff/ratio</span></span>
+      <div class="cat-bar-wrap"><div class="cat-bar" style="width:100%; background:#3355cc;"></div><span class="cat-val">95.6</span></div>
+    </div>
+    <div class="cat-row">
+      <span class="cat-label">Duration metrics<br><span class="cat-sub">weekly duration, long run time, fast run time</span></span>
+      <div class="cat-bar-wrap"><div class="cat-bar" style="width:97%; background:#5577dd;"></div><span class="cat-val">99.7</span></div>
+    </div>
+    <div class="cat-row">
+      <span class="cat-label">Mileage metrics<br><span class="cat-sub">weekly miles, long run distance, fast run distance</span></span>
+      <div class="cat-bar-wrap"><div class="cat-bar" style="width:96%; background:#7799ee;"></div><span class="cat-val">97.5</span></div>
+    </div>
+    <div class="cat-row">
+      <span class="cat-label">Training frequency<br><span class="cat-sub">runs per week</span></span>
+      <div class="cat-bar-wrap"><div class="cat-bar" style="width:9%; background:#aabbee;"></div><span class="cat-val">8.8</span></div>
+    </div>
+  </div>
+  <p class="chart-note">
+    Sum of absolute Ridge coefficients across all 16 weeks per category.
+    Pace, duration, and mileage are roughly equal in total weight — but pace
+    and duration often encode the same signal (pace = distance ÷ time),
+    meaning <strong>how fast you run</strong> dominates over <strong>how often</strong>.
+  </p>
+</div>
+
+<div class="highlight-box">
+  <h3>The key takeaway</h3>
+  <p>The model sees two distinct things: <strong>(1)</strong> your absolute fitness level
+     (captured by your actual paces — not something a training plan can fake) and
+     <strong>(2)</strong> the quality of your training structure (captured by pace
+     differentiation — something you <em>can</em> control). Volume and frequency
+     matter, but they're secondary.</p>
+</div>
+
+<h2>The Tools</h2>
+<div class="tool-grid">
+  <a href="/projects/marathon" class="tool-card">
+    <h3>Finish Time Predictor</h3>
+    <p>Upload 16 weeks of training data (CSV) and the Ridge model predicts your
+       marathon finish time. RMSE ≈ 29 min on held-out data.</p>
+  </a>
+  <a href="/projects/marathon/schedule" class="tool-card">
+    <h3>Training Schedule Generator</h3>
+    <p>Enter a goal time and get a 16-week plan derived from the median training
+       patterns of real runners who finished near your target — filtered by gender
+       and age group.</p>
+  </a>
+</div>
+
+<h2>About This Project</h2>
+<p>Built on Garmin/Strava training logs (2019–2020) covering 22,000+ marathon training
+   cycles. The model is Ridge Regression (α = 51.79) with 157 features — per-week
+   mileage, pace, long-run and fastest-run metrics across 16 weeks, plus demographics.
+   Athlete-grouped cross-validation prevents data leakage between a runner's
+   training history and their race result.</p>
+<p>Tech: Python, scikit-learn, pandas, Flask.</p>
+
+{% endblock %}
